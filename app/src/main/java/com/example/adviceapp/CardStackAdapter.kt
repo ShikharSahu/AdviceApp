@@ -6,9 +6,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.adviceapp.databinding.AdviceCardBinding
 
+
 class CardStackAdapter(
-    private var advices: MutableList<Advice>,
-    private val loadDataFromOnlineAndSet: LoadDataFromOnlineAndSet
+    private var advices: MutableList<Advice>
 ) : RecyclerView.Adapter<CardStackAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: AdviceCardBinding) : RecyclerView.ViewHolder(binding.root) {}
@@ -17,9 +17,7 @@ class CardStackAdapter(
         return ViewHolder(AdviceCardBinding.inflate(LayoutInflater.from(parent.context),parent,false))
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        loadDataFromOnlineAndSet.loadDataFromOnlineAndSet(holder, position)
-    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {}
 
     override fun getItemCount(): Int {
         return advices.size
@@ -33,12 +31,7 @@ class CardStackAdapter(
         this.advices = advices
     }
 
-
     interface LoadDataFromOnlineAndSet{
         fun loadDataFromOnlineAndSet(holder: ViewHolder, position: Int)
     }
-
-
-
-
 }

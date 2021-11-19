@@ -1,6 +1,5 @@
 package com.example.adviceapp
 
-import android.content.ContentValues
 import android.content.ContentValues.TAG
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -11,16 +10,18 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import com.example.adviceapp.databinding.ActivityMainBinding
 import com.yuyakaido.android.cardstackview.*
 import android.content.Intent
-import android.view.SurfaceHolder
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.recyclerview.widget.DiffUtil
 import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
 import layout.VolleySingletonRequestQueue
+import android.view.Menu
+import android.view.MenuItem
 
 
-class MainActivity : AppCompatActivity(), CardStackListener, CardStackAdapter.LoadDataFromOnlineAndSet {
+class MainActivity : AppCompatActivity(), CardStackListener{
 
     lateinit var cardStackView: CardStackView
     lateinit var manager: CardStackLayoutManager
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity(), CardStackListener, CardStackAdapter.Lo
     private fun initializeManager() {
         cardStackView = binding.cardStackView
         manager = CardStackLayoutManager(this, this)
-        adapter = CardStackAdapter(adviceList, this)
+        adapter = CardStackAdapter(adviceList)
         manager.setStackFrom(StackFrom.None)
         manager.setVisibleCount(1)
         manager.setTranslationInterval(8.0f)
@@ -71,25 +72,28 @@ class MainActivity : AppCompatActivity(), CardStackListener, CardStackAdapter.Lo
     }
 
     override fun onCardSwiped(direction: Direction) {
-        val cardSwipedAdvice = adviceList[manager.topPosition]
+        val cardSwipedAdvice = adviceList[manager.topPosition-1]
+        cardSwipedAdvice.timeSavedAt = System.currentTimeMillis()
+
         when (direction) {
             Direction.Right -> {
                 Log.d("something", cardSwipedAdvice.adText)
-                shareAdvice(advice = cardSwipedAdvice)
-                Toast.makeText(this,"share",Toast.LENGTH_SHORT).show()
+                val db = DBHelper(this, null)
+                db.addAdvice(cardSwipedAdvice)
+                Toast.makeText(this,"Saved!",Toast.LENGTH_SHORT).show()
+
             }
             Direction.Left -> {
                 Log.d("something", cardSwipedAdvice.adText)
-                Toast.makeText(this,"gone",Toast.LENGTH_SHORT).show()
-
-                // good enough
+//                Toast.makeText(this,"gone",Toast.LENGTH_SHORT).show()
             }
             Direction.Top -> {
                 Log.d("something", cardSwipedAdvice.adText)
+                shareAdvice(advice = cardSwipedAdvice)
+//                Toast.makeText(this,"share",Toast.LENGTH_SHORT).show()
             }
             Direction.Bottom -> {
-                cardStackView.rewind()
-                Log.d("something", cardSwipedAdvice.adText)
+//                Log.d("something", cardSwipedAdvice.adText)
             }
         }
 
@@ -100,7 +104,8 @@ class MainActivity : AppCompatActivity(), CardStackListener, CardStackAdapter.Lo
     private fun shareAdvice (advice: Advice){
         val i = Intent(Intent.ACTION_SEND)
         i.type = "text/plain"
-        i.putExtra(Intent.EXTRA_TEXT, advice.adText)
+        i.putExtra(Intent.EXTRA_TEXT, "Here's some advice I read online. " +
+                "Thought you'd like it too. \"${advice.adText}\"")
         startActivity(i)
     }
 
@@ -113,23 +118,19 @@ class MainActivity : AppCompatActivity(), CardStackListener, CardStackAdapter.Lo
     }
 
     override fun onCardAppeared(view: View, position: Int) {
-        Log.d("CardStackView", "onCardCanceled: ${manager.topPosition}")
 
-    }
+        val tvAdvice = view.findViewById<TextView>(R.id.tvAdvice)
+        val tvAdviceNo = findViewById<TextView>(R.id.tvAdviceNo)
+        val adviceProgressBar = findViewById<ProgressBar>(R.id.adviceProgressBar)
 
-    override fun onCardDisappeared(view: View, position: Int) {
-        Log.d("CardStackView", "onCardCanceled: ${manager.topPosition}")
-    }
-
-    override fun loadDataFromOnlineAndSet(holder: CardStackAdapter.ViewHolder, position: Int) {
-        holder.binding.tvAdvice.text = ""
-        holder.binding.tvAdviceNo.text = ""
+        tvAdvice.text = ""
+        tvAdviceNo.text =""
 
         val size = adviceList.size
 
-        holder.binding.adviceProgressBar.visibility = View.VISIBLE
-        manager.setCanScrollHorizontal(false)
-        manager.setCanScrollVertical(false)
+        adviceProgressBar.visibility = View.VISIBLE
+        adviceList.add(Advice(0, "", 0))
+
         val url = "https://api.adviceslip.com/advice"
         val jsonObjectRequest = JsonObjectRequest(
             Request.Method.GET, url, null,
@@ -138,32 +139,56 @@ class MainActivity : AppCompatActivity(), CardStackListener, CardStackAdapter.Lo
                 val idInt = res.getInt("id")
                 val adviceString = res.getString("advice")
 
-                holder.binding.adviceProgressBar.visibility = View.GONE
-                holder.binding.tvAdvice.text = adviceString
-                holder.binding.tvAdviceNo.text = "Advice #$idInt"
+                adviceProgressBar.visibility = View.GONE
+                tvAdvice.text = adviceString
+                tvAdviceNo.text = "Advice #$idInt"
 
                 adviceList[size - 1].id = idInt
                 adviceList[size - 1].adText = adviceString
                 adapter.notifyItemChanged(size - 1)
 
-                manager.setCanScrollHorizontal(true)
-                manager.setCanScrollVertical(true)
-
-
-
-                Toast.makeText(this, "" + size, Toast.LENGTH_SHORT).show()
-                adviceList.add(Advice(0, "", 0))
+//                Toast.makeText(this, "" + size, Toast.LENGTH_SHORT).show()
 
             },
             { error ->
-                holder.binding.tvAdvice.text = "Some error occurred"
-                holder.binding.adviceProgressBar.visibility = View.GONE
-                Log.d(ContentValues.TAG, "Lol eeror")
+                tvAdvice.text = "Some error occurred"
+                adviceProgressBar.visibility = View.GONE
+                Log.d(TAG, "Lol eeror")
             }
         )
         VolleySingletonRequestQueue.getInstance(context = this)
             .addToRequestQueue(jsonObjectRequest)
+
     }
 
+    override fun onCardDisappeared(view: View, position: Int) {
+        val tvAdvice = view.findViewById<TextView>(R.id.tvAdvice)
+        val tvAdviceNo = findViewById<TextView>(R.id.tvAdviceNo)
+
+        tvAdvice.text = ""
+        tvAdviceNo.text =""
+
+        Log.d("CardStackView", "onCardCanceled: ${manager.topPosition}")
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.navigation_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id: Int = item.getItemId()
+        return when (id) {
+            R.id.savedAdviceMenuButton -> {
+//                Toast.makeText(applicationContext, "Item 1 Selected", Toast.LENGTH_LONG).show()
+                val intent = Intent(this, SavedAdviceActivity::class.java)
+                startActivity(intent)
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
 
 }
