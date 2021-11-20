@@ -17,7 +17,8 @@ class CardStackAdapter(
         return ViewHolder(AdviceCardBinding.inflate(LayoutInflater.from(parent.context),parent,false))
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {}
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    }
 
     override fun getItemCount(): Int {
         return advices.size

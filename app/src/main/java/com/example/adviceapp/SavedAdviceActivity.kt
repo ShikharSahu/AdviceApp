@@ -10,6 +10,11 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import java.lang.Exception
 import androidx.recyclerview.widget.DividerItemDecoration
+import com.google.android.material.snackbar.Snackbar
+
+import androidx.recyclerview.widget.LinearSmoothScroller
+import androidx.recyclerview.widget.RecyclerView.SmoothScroller
+
 
 class SavedAdviceActivity : AppCompatActivity() {
 
@@ -18,6 +23,7 @@ class SavedAdviceActivity : AppCompatActivity() {
     private lateinit var adapter : SavedAdviceAdapter
     private lateinit var allAdvices : MutableList<Advice>
     private lateinit var manager: LinearLayoutManager
+    private lateinit var smoothScroller: SmoothScroller
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +35,13 @@ class SavedAdviceActivity : AppCompatActivity() {
         allAdvices = getAllAdvice()
 
         adapter = SavedAdviceAdapter(allAdvices)
+
+        smoothScroller =
+            object : LinearSmoothScroller(this@SavedAdviceActivity) {
+                override fun getVerticalSnapPreference(): Int {
+                    return SNAP_TO_START
+                }
+            }
 
         val simpleItemTouchCallback: ItemTouchHelper.SimpleCallback = object :
             ItemTouchHelper.SimpleCallback(
@@ -53,6 +66,20 @@ class SavedAdviceActivity : AppCompatActivity() {
 
                     val dbHelper = DBHelper(this@SavedAdviceActivity, null)
                     dbHelper.deleteAdvice(removedAdvice.id)
+
+                    val layout =  binding.clSavedAdviceActivity
+                    val snackBar = Snackbar.make(layout, "Advice deleted",
+                        Snackbar.LENGTH_LONG).setAction("Undo") {
+                        dbHelper.addAdvice(removedAdvice)
+                        allAdvices.add(position, removedAdvice)
+                        adapter.notifyItemInserted(position)
+                        smoothScroller.targetPosition = position
+                        manager.startSmoothScroll(smoothScroller)
+
+                    }
+                    snackBar.show()
+
+
                 }
                 else if(swipeDir == ItemTouchHelper.RIGHT){
                     shareAdvice(removedAdvice)

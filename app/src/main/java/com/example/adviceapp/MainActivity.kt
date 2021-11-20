@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import com.example.adviceapp.databinding.ActivityMainBinding
 import com.yuyakaido.android.cardstackview.*
 import android.content.Intent
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
@@ -19,6 +18,10 @@ import com.android.volley.toolbox.JsonObjectRequest
 import layout.VolleySingletonRequestQueue
 import android.view.Menu
 import android.view.MenuItem
+import com.example.adviceapp.databinding.AdviceCardBinding
+
+import com.github.ybq.android.spinkit.sprite.Sprite
+import com.github.ybq.android.spinkit.style.Pulse
 
 
 class MainActivity : AppCompatActivity(), CardStackListener{
@@ -119,9 +122,13 @@ class MainActivity : AppCompatActivity(), CardStackListener{
 
     override fun onCardAppeared(view: View, position: Int) {
 
-        val tvAdvice = view.findViewById<TextView>(R.id.tvAdvice)
-        val tvAdviceNo = findViewById<TextView>(R.id.tvAdviceNo)
-        val adviceProgressBar = findViewById<ProgressBar>(R.id.adviceProgressBar)
+        val adviceCardBinding = AdviceCardBinding.bind(view)
+
+
+        val tvAdvice = adviceCardBinding.tvAdvice
+        val tvAdviceNo = adviceCardBinding.tvAdviceNo
+        val adviceProgressBar = adviceCardBinding.adviceProgressBar
+
 
         tvAdvice.text = ""
         tvAdviceNo.text =""

@@ -14,10 +14,9 @@
         android:theme="@style/Theme.AdviceApp">
         <activity
             android:name=".SavedAdviceActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SavedNotesActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".MainActivity"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

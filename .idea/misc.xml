@@ -4,10 +4,11 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/code/AndroidProjects/AdviceApp/app/src/main/res/drawable/ic_baseline_note_24.xml" value="0.1" />
+        <entry key="..\:/code/AndroidProjects/AdviceApp/app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.1" />
         <entry key="..\:/code/AndroidProjects/AdviceApp/app/src/main/res/layout/activity_main.xml" value="0.2395498392282958" />
         <entry key="..\:/code/AndroidProjects/AdviceApp/app/src/main/res/layout/activity_saved_advice.xml" value="0.17708333333333334" />
         <entry key="..\:/code/AndroidProjects/AdviceApp/app/src/main/res/layout/activity_saved_notes.xml" value="0.21510416666666668" />
-        <entry key="..\:/code/AndroidProjects/AdviceApp/app/src/main/res/layout/advice_card.xml" value="0.19401041666666666" />
+        <entry key="..\:/code/AndroidProjects/AdviceApp/app/src/main/res/layout/advice_card.xml" value="0.264" />
         <entry key="..\:/code/AndroidProjects/AdviceApp/app/src/main/res/layout/saved_advice_cards.xml" value="0.25729166666666664" />
         <entry key="..\:/code/AndroidProjects/AdviceApp/app/src/main/res/menu/navigation_menu.xml" value="0.25729166666666664" />
       </map>
