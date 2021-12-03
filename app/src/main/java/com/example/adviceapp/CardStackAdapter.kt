@@ -14,11 +14,13 @@ class CardStackAdapter(
     class ViewHolder(val binding: AdviceCardBinding) : RecyclerView.ViewHolder(binding.root) {}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(AdviceCardBinding.inflate(LayoutInflater.from(parent.context),parent,false))
+        val viewHolder = ViewHolder(AdviceCardBinding.inflate(LayoutInflater.from(parent.context),parent,false))
+        viewHolder.binding.tvAdviceNo.text = ""
+        viewHolder.binding.tvAdvice.text = ""
+        return viewHolder
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {}
 
     override fun getItemCount(): Int {
         return advices.size
