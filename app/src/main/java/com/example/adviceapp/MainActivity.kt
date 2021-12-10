@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import com.example.adviceapp.databinding.ActivityMainBinding
 import com.yuyakaido.android.cardstackview.*
 import android.content.Intent
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import com.android.volley.Request
@@ -18,10 +17,9 @@ import com.android.volley.toolbox.JsonObjectRequest
 import layout.VolleySingletonRequestQueue
 import android.view.Menu
 import android.view.MenuItem
+import android.view.animation.DecelerateInterpolator
 import com.example.adviceapp.databinding.AdviceCardBinding
 
-import com.github.ybq.android.spinkit.sprite.Sprite
-import com.github.ybq.android.spinkit.style.Pulse
 
 
 class MainActivity : AppCompatActivity(), CardStackListener{
@@ -30,7 +28,7 @@ class MainActivity : AppCompatActivity(), CardStackListener{
     lateinit var manager: CardStackLayoutManager
     lateinit var adapter: CardStackAdapter
     lateinit var binding: ActivityMainBinding
-    val adviceList = mutableListOf<Advice>()
+    private val adviceList = mutableListOf<Advice>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,6 +39,16 @@ class MainActivity : AppCompatActivity(), CardStackListener{
         initializeManager()
         val advice = Advice(0,"",0)
         adviceList.add(advice)
+
+        binding.rewindButton.setOnClickListener{
+            val setting = RewindAnimationSetting.Builder()
+                .setDirection(Direction.Bottom)
+                .setDuration(Duration.Normal.duration)
+                .setInterpolator(DecelerateInterpolator())
+                .build()
+            manager.setRewindAnimationSetting(setting)
+            cardStackView.rewind()
+        }
     }
 
 
@@ -58,7 +66,7 @@ class MainActivity : AppCompatActivity(), CardStackListener{
         manager.setDirections(Direction.FREEDOM)
         manager.setCanScrollHorizontal(true)
         manager.setCanScrollVertical(true)
-        manager.setSwipeableMethod(SwipeableMethod.Manual)
+        manager.setSwipeableMethod(SwipeableMethod.AutomaticAndManual)
         manager.setOverlayInterpolator(LinearInterpolator())
 
         cardStackView.layoutManager = manager
@@ -68,6 +76,12 @@ class MainActivity : AppCompatActivity(), CardStackListener{
                 supportsChangeAnimations = false
             }
         }
+        val setting = RewindAnimationSetting.Builder()
+            .setDirection(Direction.Bottom)
+            .setDuration(Duration.Normal.duration)
+            .setInterpolator(DecelerateInterpolator())
+            .build()
+        manager.setRewindAnimationSetting(setting)
     }
 
     override fun onCardDragging(direction: Direction, ratio: Float) {
@@ -78,13 +92,13 @@ class MainActivity : AppCompatActivity(), CardStackListener{
         val cardSwipedAdvice = adviceList[manager.topPosition-1]
         cardSwipedAdvice.timeSavedAt = System.currentTimeMillis()
 
+
         when (direction) {
             Direction.Right -> {
                 Log.d("something", cardSwipedAdvice.adText)
                 val db = DBHelper(this, null)
                 db.addAdvice(cardSwipedAdvice)
                 Toast.makeText(this,"Saved!",Toast.LENGTH_SHORT).show()
-
             }
             Direction.Left -> {
                 Log.d("something", cardSwipedAdvice.adText)
@@ -93,10 +107,11 @@ class MainActivity : AppCompatActivity(), CardStackListener{
             Direction.Top -> {
                 Log.d("something", cardSwipedAdvice.adText)
                 shareAdvice(advice = cardSwipedAdvice)
-//                Toast.makeText(this,"share",Toast.LENGTH_SHORT).show()
             }
             Direction.Bottom -> {
-//                Log.d("something", cardSwipedAdvice.adText)
+                cardStackView.rewind()
+//                Toast.makeText(baseContext, "itsRewindTime", Toast.LENGTH_SHORT).show()
+
             }
         }
 
@@ -121,6 +136,8 @@ class MainActivity : AppCompatActivity(), CardStackListener{
     }
 
     override fun onCardAppeared(view: View, position: Int) {
+//        Toast.makeText(baseContext, "${manager.topPosition} and $position", Toast.LENGTH_SHORT).show()
+
 
         val adviceCardBinding = AdviceCardBinding.bind(view)
 
@@ -133,48 +150,56 @@ class MainActivity : AppCompatActivity(), CardStackListener{
         tvAdvice.text = ""
         tvAdviceNo.text =""
 
+
         val size = adviceList.size
+        if (size == position+1)
+        {
+            adviceProgressBar.visibility = View.VISIBLE
+            adviceList.add(Advice(0, "", 0))
 
-        adviceProgressBar.visibility = View.VISIBLE
-        adviceList.add(Advice(0, "", 0))
+            val url = "https://api.adviceslip.com/advice"
+            val jsonObjectRequest = JsonObjectRequest(
+                Request.Method.GET, url, null,
+                { response ->
+                    val res = response.getJSONObject("slip")
+                    val idInt = res.getInt("id")
+                    val adviceString = res.getString("advice")
 
-        val url = "https://api.adviceslip.com/advice"
-        val jsonObjectRequest = JsonObjectRequest(
-            Request.Method.GET, url, null,
-            { response ->
-                val res = response.getJSONObject("slip")
-                val idInt = res.getInt("id")
-                val adviceString = res.getString("advice")
+                    adviceProgressBar.visibility = View.GONE
+                    tvAdvice.text = adviceString
+                    tvAdviceNo.text = "Advice #$idInt"
 
-                adviceProgressBar.visibility = View.GONE
-                tvAdvice.text = adviceString
-                tvAdviceNo.text = "Advice #$idInt"
-
-                adviceList[size - 1].id = idInt
-                adviceList[size - 1].adText = adviceString
-                adapter.notifyItemChanged(size - 1)
+                    adviceList[size - 1].id = idInt
+                    adviceList[size - 1].adText = adviceString
+                    adapter.notifyItemChanged(size - 1)
+                    adapter.notifyItemInserted(adviceList.size-1)
 
 //                Toast.makeText(this, "" + size, Toast.LENGTH_SHORT).show()
 
-            },
-            { error ->
-                tvAdvice.text = "Some error occurred"
-                adviceProgressBar.visibility = View.GONE
-                Log.d(TAG, "Lol eeror")
-            }
-        )
-        VolleySingletonRequestQueue.getInstance(context = this)
-            .addToRequestQueue(jsonObjectRequest)
+                },
+                { _ ->
+                    tvAdvice.text = "Some error occurred"
+                    adviceProgressBar.visibility = View.GONE
+                    Log.d(TAG, "Lol eeror")
+                }
+            )
+            VolleySingletonRequestQueue.getInstance(context = this)
+                .addToRequestQueue(jsonObjectRequest)
+        }
+        else{
+            adviceProgressBar.visibility = View.GONE
+            tvAdvice.text = "Advice #${adviceList[position].adText}"
+            tvAdviceNo.text = adviceList[position].id.toString()
+//            Toast.makeText(baseContext, "old one", Toast.LENGTH_SHORT).show()
+
+        }
 
     }
 
     override fun onCardDisappeared(view: View, position: Int) {
-        val tvAdvice = view.findViewById<TextView>(R.id.tvAdvice)
-        val tvAdviceNo = findViewById<TextView>(R.id.tvAdviceNo)
-
-        tvAdvice.text = ""
-        tvAdviceNo.text =""
-
+        val adviceCardBinding = AdviceCardBinding.bind(view)
+        adviceCardBinding.tvAdvice.text=""
+        adviceCardBinding.tvAdviceNo.text=""
         Log.d("CardStackView", "onCardCanceled: ${manager.topPosition}")
     }
 
@@ -185,8 +210,7 @@ class MainActivity : AppCompatActivity(), CardStackListener{
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id: Int = item.getItemId()
-        return when (id) {
+        return when (item.itemId) {
             R.id.savedAdviceMenuButton -> {
 //                Toast.makeText(applicationContext, "Item 1 Selected", Toast.LENGTH_LONG).show()
                 val intent = Intent(this, SavedAdviceActivity::class.java)
