@@ -12,7 +12,7 @@
 # AdviceApp
 
 ## Swipe-layout:
-![swipe layout](https://github.com/ShikharSahu/imageRepo/blob/main/AdviceApp/swipe_layout.jpeg)
+<img src="https://github.com/ShikharSahu/imageRepo/blob/main/AdviceApp/swipe_layout.jpeg" alt="swipe layout" width="250"/>
 
 ## Advice archive list:
-![advice archive list](https://github.com/ShikharSahu/imageRepo/blob/main/AdviceApp/advice_archive_list.jpeg)
+<img src="https://github.com/ShikharSahu/imageRepo/blob/main/AdviceApp/advice_archive_list.jpeg" alt="Advice archive list" width="250"/>
