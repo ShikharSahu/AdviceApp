@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity(), CardStackListener{
         manager.setDirections(Direction.FREEDOM)
         manager.setCanScrollHorizontal(true)
         manager.setCanScrollVertical(true)
-        manager.setSwipeableMethod(SwipeableMethod.AutomaticAndManual)
+        manager.setSwipeableMethod(SwipeableMethod.Manual)
         manager.setOverlayInterpolator(LinearInterpolator())
 
         cardStackView.layoutManager = manager
@@ -99,6 +99,7 @@ class MainActivity : AppCompatActivity(), CardStackListener{
                 val db = DBHelper(this, null)
                 db.addAdvice(cardSwipedAdvice)
                 Toast.makeText(this,"Saved!",Toast.LENGTH_SHORT).show()
+
             }
             Direction.Left -> {
                 Log.d("something", cardSwipedAdvice.adText)
@@ -136,8 +137,6 @@ class MainActivity : AppCompatActivity(), CardStackListener{
     }
 
     override fun onCardAppeared(view: View, position: Int) {
-//        Toast.makeText(baseContext, "${manager.topPosition} and $position", Toast.LENGTH_SHORT).show()
-
 
         val adviceCardBinding = AdviceCardBinding.bind(view)
 
@@ -149,7 +148,6 @@ class MainActivity : AppCompatActivity(), CardStackListener{
 
         tvAdvice.text = ""
         tvAdviceNo.text =""
-
 
         val size = adviceList.size
         if (size == position+1)
@@ -188,8 +186,8 @@ class MainActivity : AppCompatActivity(), CardStackListener{
         }
         else{
             adviceProgressBar.visibility = View.GONE
-            tvAdvice.text = adviceList[position].adText
-            tvAdviceNo.text = "Advice #${adviceList[position].id.toString()}"
+            tvAdvice.text = "Advice #${adviceList[position].adText}"
+            tvAdviceNo.text = adviceList[position].id.toString()
 //            Toast.makeText(baseContext, "old one", Toast.LENGTH_SHORT).show()
 
         }
